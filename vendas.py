@@ -53,5 +53,3 @@ def registrar_venda(produto_id, quantidade):
             print("Erro na venda:")
             print(erro)
 
-        finally:
-            conn.close()
