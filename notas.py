@@ -75,7 +75,6 @@ def cancelar_nota(nota_id):
     DELETE FROM notas
     WHERE id = ?
     """, (nota_id,))
-    conn.commit()
 
     print(f"Nota {nota_id} cancelada com sucesso")
-    
+    conn.commit()
