@@ -37,7 +37,7 @@ def ver_itens_nota(nota_id):
                 print(f"{nome} | Qtd: {quantidade} | Preço: {preco} | Total: {total}")
         
         print(f"\nTOTAL DA NOTA: {total_nota}")
-    conn.commit()
+        conn.commit()
 
 def cancelar_nota(nota_id):
     with obter_conexao() as (conn, cursor):
@@ -51,7 +51,6 @@ def cancelar_nota(nota_id):
 
     if not itens:
         print("Nota não encontrada ou não possui itens")
-        conn.close()
         return
     
     #devolve itens ao estoque
@@ -76,9 +75,7 @@ def cancelar_nota(nota_id):
     DELETE FROM notas
     WHERE id = ?
     """, (nota_id,))
-
     conn.commit()
-    conn.close()
 
     print(f"Nota {nota_id} cancelada com sucesso")
     
