@@ -2,11 +2,10 @@ from fpdf import FPDF
 from database import obter_conexao
 
 def gerar_danfe(nota_id):
-    conn, cursor = obter_conexao()
-
-    #busca dados da nota
-    cursor.execute("SELECT data FROM notas WHERE id = ?", (nota_id,))
-    nota = cursor.fetchone()
+    with obter_conexao() as (conn, cursor):
+        #busca dados da nota
+        cursor.execute("SELECT data FROM notas WHERE id = ?", (nota_id,))
+        nota = cursor.fetchone()
 
     if not nota:
         print("Nota não encontrada!")

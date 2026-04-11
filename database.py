@@ -1,6 +1,11 @@
 import sqlite3
+from contextlib import contextmanager
 
-def conectar():
+@contextmanager
+def obter_conexao():
     conn = sqlite3.connect("estoque.db")
     cursor = conn.cursor()
-    return conn, cursor
+    try:
+        yield conn, cursor
+    finally:
+        conn.close()

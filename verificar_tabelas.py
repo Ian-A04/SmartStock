@@ -1,17 +1,12 @@
 from database import obter_conexao
 import os
 
-conn = obter_conexao()
-cursor = conn.cursor()
+with obter_conexao() as (conn, cursor):
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tabelas = cursor.fetchall()
 
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    print("Tabelas no banco:")
+    for t in tabelas:
+        print(t[0])
 
-tabelas = cursor.fetchall()
-
-print("Tabelas no banco:")
-for t in tabelas:
-    print(t[0])
-
-conn.close()
-
-print(f"\nCaminho atual do projeto: {os.getcwdb()}")
+    print(f"\nCaminho atual do projeto: {os.getcwdb()}")
