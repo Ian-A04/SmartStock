@@ -8,14 +8,17 @@ from gerador_pdf import gerar_danfe
 def menu():
 
     while True:
-
-        #BLOCO DE ALERTA 
-        alertas = verificar_estoque_baixo(10) #10 = estoque crítico
-        if alertas:
-            print("\n⚠️ ATENÇÃO: PRODUTOS COM ESTOQUE BAICO!")
-            for item in alertas:
-                print(f"  - {item[1]} (ID: {item[0]}) possui apenas {item[2]} unidades.")
-            print("-" * 30)
+        try:
+            #BLOCO DE ALERTA 
+            alertas = verificar_estoque_baixo(10) #10 = estoque crítico
+            if alertas:
+                print("\n⚠️ ATENÇÃO: PRODUTOS COM ESTOQUE BAICO!")
+                for item in alertas:
+                    print(f"  - {item[1]} (ID: {item[0]}) possui apenas {item[2]} unidades.")
+                print("-" * 30)
+        
+        except:
+            pass
 #-----------------------------------------------------------------------------------------    
         
         #MENU CRUD
