@@ -1,6 +1,6 @@
-from database import conectar
+from database import obter_conexao
 
-with obter_conexao() as (conn, cursor):
+with obter_conexao () as (conn, cursor):
 # tabela de produtos
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS produtos (
