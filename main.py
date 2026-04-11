@@ -2,6 +2,7 @@ from produtos import adicionar_produto, listar_produtos, adicionar_estoque, remo
 from vendas import registrar_venda
 from notas import listar_notas, ver_itens_nota, cancelar_nota
 from relatorios import relatorio_vendas
+from gerador_pdf import gerar_danfe
 #--------------------------------------------------------------------------------------------------------------------
 
 def menu():
@@ -28,6 +29,7 @@ def menu():
         print("7 - Ver Itens da Nota")
         print("8 - Cancelar Nota")
         print("9 - Relatório de Vendas")
+        print("10 - Gerar PDF da nota da venda (DANFE)")
         print("0 - Sair")
 
         opcao = input("Escolha uma opção: ")
@@ -89,6 +91,10 @@ def menu():
 
             elif opcao == "9":
                 relatorio_vendas()
+
+            elif opcao == "10":
+                id_nota = int(input("Digite o ID da nota: "))
+                gerar_danfe(id_nota)
 
             elif opcao == "0":
                 print("Saindo do sistema...")
