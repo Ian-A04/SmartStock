@@ -47,34 +47,34 @@ def cancelar_nota(nota_id):
         FROM itens_nota
         WHERE nota_id = ?
         """, (nota_id,))
-    itens = cursor.fetchall()
+        itens = cursor.fetchall()
 
-    if not itens:
-        print("Nota não encontrada ou não possui itens")
-        return
+        if not itens:
+            print("Nota não encontrada ou não possui itens")
+            return
     
-    #devolve itens ao estoque
-    for item in itens:
-        produto_id = item[0]
-        quantidade = item[1]
+        #devolve itens ao estoque
+        for item in itens:
+            produto_id = item[0]
+            quantidade = item[1]
 
-        cursor.execute("""
-        UPDATE produtos
-        SET quantidade = quantidade + ?
-        WHERE id = ?
-        """, (quantidade, produto_id))
+            cursor.execute("""
+            UPDATE produtos
+            SET quantidade = quantidade + ?
+            WHERE id = ?
+            """, (quantidade, produto_id))
 
-    #remove itens da nota
-    cursor.execute("""
-    DELETE FROM itens_nota
-    WHERE nota_id = ?
-    """, (nota_id,))
+            #remove itens da nota
+            cursor.execute("""
+            DELETE FROM itens_nota
+            WHERE nota_id = ?
+            """, (nota_id,))
 
-    #remove a nota
-    cursor.execute("""
-    DELETE FROM notas
-    WHERE id = ?
-    """, (nota_id,))
+            #remove a nota
+            cursor.execute("""
+            DELETE FROM notas
+            WHERE id = ?
+            """, (nota_id,))
 
-    print(f"Nota {nota_id} cancelada com sucesso")
-    conn.commit()
+            print(f"Nota {nota_id} cancelada com sucesso")
+        conn.commit()
