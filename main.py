@@ -3,7 +3,39 @@ from vendas import registrar_venda
 from notas import listar_notas, ver_itens_nota, cancelar_nota
 from relatorios import relatorio_vendas
 from gerador_pdf import gerar_danfe
+from auth import fazer_login, cadastrar_usuario
 #--------------------------------------------------------------------------------------------------------------------
+from auth import fazer_login, cadastrar_usuario
+
+def tela_inicial():
+    print("\n=== BEM-VINDO AO SMARTSTOQUE ===")
+    print("1 - Login")
+    print("2 - Cadastrar novo usuário")
+    opcao = input("Escolha: ")
+
+    if opcao == "2":
+        user = input("Novo usuário: ")
+        pw = input("Nova senha: ")
+        cadastrar_usuario(user, pw)
+        return False # Volta para a tela inicial
+
+    elif opcao == "1":
+        user = input("Usuário: ")
+        pw = input("Senha: ")
+        if fazer_login(user, pw):
+            print("Login realizado com sucesso!")
+            return True
+        else:
+            print("Usuário ou senha incorretos.")
+            return False
+
+# No final do main.py, mude a chamada do menu:
+if __name__ == "__main__":
+    logado = False
+    while not logado:
+        logado = tela_inicial()
+    
+    menu() # Só entra no menu se logado for True
 
 def menu():
 
