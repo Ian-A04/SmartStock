@@ -1,11 +1,10 @@
-from produtos import adicionar_produto, listar_produtos, adicionar_estoque, remover_produto, verificar_estoque_baixo
-from vendas import registrar_venda
-from notas import listar_notas, ver_itens_nota, cancelar_nota
-from relatorios import relatorio_vendas
-from gerador_pdf import gerar_danfe
-from auth import fazer_login, cadastrar_usuario
+from core.produtos import adicionar_produto, listar_produtos, adicionar_estoque, remover_produto, verificar_estoque_baixo
+from core.vendas import registrar_venda
+from core.notas import listar_notas, ver_itens_nota, cancelar_nota
+from utils.relatorios import relatorio_vendas
+from utils.gerador_pdf import gerar_danfe
+from auth.auth import fazer_login, cadastrar_usuario
 #--------------------------------------------------------------------------------------------------------------------
-from auth import fazer_login, cadastrar_usuario
 
 def tela_inicial():
     print("\n=== BEM-VINDO AO SMARTSTOQUE ===")
@@ -28,14 +27,6 @@ def tela_inicial():
         else:
             print("Usuário ou senha incorretos.")
             return False
-
-# No final do main.py, mude a chamada do menu:
-if __name__ == "__main__":
-    logado = False
-    while not logado:
-        logado = tela_inicial()
-    
-    menu() # Só entra no menu se logado for True
 
 def menu():
 
@@ -144,4 +135,10 @@ def menu():
         except Exception as erro:
             print("Erro inesperado:", erro)
 
-menu()
+# No final do main.py, mude a chamada do menu:
+if __name__ == "__main__":
+    logado = False
+    while not logado:
+        logado = tela_inicial()
+    
+    menu() # Só entra no menu se logado for True
