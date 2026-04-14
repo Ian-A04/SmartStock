@@ -4,6 +4,7 @@ from core.notas import listar_notas, ver_itens_nota, cancelar_nota
 from utils.relatorios import relatorio_vendas
 from utils.gerador_pdf import gerar_danfe
 from auth.auth import fazer_login, cadastrar_usuario
+from core.clientes import adicionar_cliente, listar_clientes
 #--------------------------------------------------------------------------------------------------------------------
 
 def tela_inicial():
@@ -56,6 +57,8 @@ def menu():
         print("8 - Cancelar Nota")
         print("9 - Relatório de Vendas")
         print("10 - Gerar PDF da nota da venda (DANFE)")
+        print("11 - Cadastrar Cliente")
+        print("12 - Listar Clientes")
         print("0 - Sair")
 
         opcao = input("Escolha uma opção: ")
@@ -121,6 +124,14 @@ def menu():
             elif opcao == "10":
                 id_nota = int(input("Digite o ID da nota: "))
                 gerar_danfe(id_nota)
+
+            elif opcao == "11":
+                nome = input("Nome do Cliente: ")
+                contato = input("Telefone/Contato: ")
+                adicionar_cliente(nome, contato)
+
+            elif opcao == "12":
+                listar_clientes()
 
             elif opcao == "0":
                 print("Saindo do sistema...")
