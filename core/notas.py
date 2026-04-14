@@ -78,3 +78,14 @@ def cancelar_nota(nota_id):
 
             print(f"Nota {nota_id} cancelada com sucesso")
         conn.commit()
+
+    def buscar_dados_nota(nota_id):
+        with obter_conexao() as (conn, cursor):
+            # O JOIN liga a tabela 'notas' com 'clientes' pelo ID
+            cursor.execute("""
+                SELECT n.id, n.data, c.nome, c.contato
+                FROM notas n
+                LEFT JOIN clientes c ON n.cliente_id = c.id
+                WHERE n.id = ?
+            """, (nota_id,))
+            return cursor.fetchone()
