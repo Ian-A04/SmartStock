@@ -18,7 +18,7 @@ def buscar_clientes_do_banco():
         return cursor.fetchall()
 
 
-# --- INTERFACE GRÁFICA (FLET) ---
+# --- INTERFACE GRÁFICA (FLET MODERNIZADO) ---
 
 def main(page: ft.Page):
     page.title = "SmartStoque Mobile"
@@ -29,7 +29,7 @@ def main(page: ft.Page):
 
     # ESTADO DO APP (Memória temporária do carrinho de compras atual)
     carrinho_atual = []
-    usuario_logado_id = 1  # Simulando o ID do vendedor logado (ex: Edson Calado)
+    usuario_logado_id = 1  # Simulando o ID do vendedor logado
 
     # Conteúdo principal que muda conforme a aba clicada
     container_principal = ft.Container(expand=True, padding=15)
@@ -45,13 +45,12 @@ def main(page: ft.Page):
             border_radius=8,
         )
         
-        # Atualiza a lista de clientes dentro do seletor de vendas
         clientes_bd = buscar_clientes_do_banco()
         dropdown_cliente.options = [ft.dropdown.Option(key="", text="🛒 Consumidor Final")]
         for cli in clientes_bd:
             dropdown_cliente.options.append(ft.dropdown.Option(key=str(cli[0]), text=f"👤 {cli[1]}"))
 
-        # Dropdown para selecionar o produto do banco que quer colocar no carrinho
+        # Dropdown para selecionar o produto do banco
         dropdown_produto = ft.Dropdown(
             label="Escolher Produto",
             border_radius=8,
@@ -70,15 +69,13 @@ def main(page: ft.Page):
                 return
             
             p_id = int(dropdown_produto.value)
-            # Busca os detalhes do produto selecionado na lista carregada do banco
             produto_selecionado = next((p for p in produtos_bd if p[0] == p_id), None)
             
             if produto_selecionado:
-                # Adiciona no formato que o core/vendas.py espera
                 carrinho_atual.append({
                     "id": produto_selecionado[0],
                     "nome": produto_selecionado[1],
-                    "quantidade": 1, # Adiciona de 1 em 1 por padrão
+                    "quantidade": 1,
                     "preco": produto_selecionado[3]
                 })
                 atualizar_carrinho_ui()
@@ -90,16 +87,9 @@ def main(page: ft.Page):
                 page.update()
                 return
 
-            # Captura o cliente selecionado na interface mobile
             cliente_selecionado_id = dropdown_cliente.value if dropdown_cliente.value else ""
             
-            # --- INTEGRAÇÃO COM O BACK-END ---
-            # Interceptamos o input para rodar a lógica real do core/vendas.py
-            # Como finalizar_venda pede o input via terminal, vamos simular a injeção ou chamar a transação limpa:
             try:
-                from core.vendas import finalizar_venda
-                
-                # Para evitar o input() travando o app mobile, fazemos o fluxo direto no banco:
                 with obter_conexao() as (conn, cursor):
                     c_id = int(cliente_selecionado_id) if cliente_selecionado_id else None
                     cursor.execute(
@@ -119,7 +109,6 @@ def main(page: ft.Page):
                         )
                     conn.commit()
                 
-                # Gera a DANFE automaticamente usando o gerador_pdf técnico
                 from utils.gerador_pdf import gerar_danfe
                 gerar_danfe(nota_id)
 
@@ -142,32 +131,35 @@ def main(page: ft.Page):
                 total += item["preco"] * item["quantidade"]
                 lista_carrinho_ui.controls.append(
                     ft.ListTile(
-                        leading=ft.Icon(ft.icons.BUILD_CIRCLE, bgcolor="blue"),
+                        leading=ft.Icon(name="BUILD_CIRCLE", color="blue"),
                         title=ft.Text(item["nome"]),
                         subtitle=ft.Text(f"{item['quantidade']}x — R$ {item['preco']:.2f}"),
-                        trailing=ft.Text(f"R$ {item['preco']*item['quantidade']:.2f}", weight=ft.FontWeight.BOLD)
+                        trailing=ft.Text(f"R$ {item['preco']*item['quantidade']:.2f}", weight=ft.font_weight.BOLD)
                     )
                 )
-            btn_fechar.text = f"Confirmar Venda (R$ {total:.2f})"
+            # ATUALIZAÇÃO SINTAXE NOVA: Altera a propriedade value do texto interno
+            texto_botao.value = f"Confirmar Venda (R$ {total:.2f})"
             page.update()
 
-        btn_fechar = ft.ElevatedButton(
-            text="Confirmar Venda (R$ 0.00)",
+        # Componente de texto separado para ser modificado dinamicamente sem erro
+        texto_botao = ft.Text("Confirmar Venda (R$ 0.00)", color="white")
+
+        # Ajustado para sintaxe moderna da v1.0
+        btn_fechar = ft.Button(
+            content=texto_botao,
             bgcolor="green",
-            color="white",
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
             on_click=fechar_venda_click,
             expand=True
         )
 
         container_principal.content = ft.Column([
-            ft.Text("Caixa Operacional", size=22, weight=ft.FontWeight.BOLD),
+            ft.Text("Caixa Operacional", size=22, weight=ft.font_weight.BOLD),
             dropdown_cliente,
             ft.Row([
                 dropdown_produto,
-                ft.IconButton(icon=ft.icons.ADD_BOX_ROUNDED, icon_color="blue", icon_size=35, on_click=adicionar_ao_carrinho_click)
+                ft.IconButton(icon="ADD_BOX_ROUNDED", icon_color="blue", icon_size=35, on_click=adicionar_ao_carrinho_click)
             ]),
-            ft.Text("Produtos no Carrinho:", weight=ft.FontWeight.BOLD, color="grey"),
+            ft.Text("Produtos no Carrinho:", weight=ft.font_weight.BOLD, color="grey"),
             lista_carrinho_ui,
             ft.Row([btn_fechar])
         ], expand=True)
@@ -176,8 +168,6 @@ def main(page: ft.Page):
     # --- ABA 2: ESTOQUE REAL (CONSULTA AO BANCO) ---
     def carregar_tela_estoque():
         lista_produtos_ui = ft.ListView(expand=True, spacing=5)
-        
-        # Puxa os dados reais de produtos do banco de dados SQLite
         produtos = buscar_produtos_do_banco()
         
         for prod in produtos:
@@ -187,15 +177,15 @@ def main(page: ft.Page):
             lista_produtos_ui.controls.append(
                 ft.ListTile(
                     leading=ft.CircleAvatar(content=ft.Text(str(p_id)), bgcolor="blue"),
-                    title=ft.Text(nome, weight=ft.FontWeight.W_500),
+                    title=ft.Text(nome, weight=ft.font_weight.W_500),
                     subtitle=ft.Text(f"Cód: {codigo} | Qtd em estoque: {qtd}", color=cor_qtd),
-                    trailing=ft.Text(f"R$ {preco:.2f}", weight=ft.FontWeight.BOLD)
+                    trailing=ft.Text(f"R$ {preco:.2f}", weight=ft.font_weight.BOLD)
                 )
             )
 
         container_principal.content = ft.Column([
-            ft.Text("Controle de Estoque", size=22, weight=ft.FontWeight.BOLD),
-            ft.TextField(label="Filtrar Produto...", prefix_icon=ft.icons.SEARCH, border_radius=8),
+            ft.Text("Controle de Estoque", size=22, weight=ft.font_weight.BOLD),
+            ft.TextField(label="Filtrar Produto...", prefix_icon="SEARCH", border_radius=8),
             lista_produtos_ui
         ], expand=True)
         page.update()
@@ -212,7 +202,7 @@ def main(page: ft.Page):
             for cli in clientes:
                 lista_clientes_ui.controls.append(
                     ft.ListTile(
-                        leading=ft.Icon(ft.icons.PERSON, color="grey"),
+                        leading=ft.Icon(name="PERSON", color="grey"),
                         title=ft.Text(cli[1]),
                         subtitle=ft.Text(f"Contato: {cli[2]}")
                     )
@@ -220,7 +210,6 @@ def main(page: ft.Page):
             page.update()
 
         def salvar_cliente_click(e):
-            # Envia para a função do seu back-end (core/clientes.py)
             sucesso = adicionar_cliente(txt_nome.value, txt_contato.value)
             
             if sucesso:
@@ -228,24 +217,34 @@ def main(page: ft.Page):
                 txt_contato.value = ""
                 page.snack_bar = ft.SnackBar(ft.Text("✅ Cliente gravado no SQLite!"))
                 page.snack_bar.open = True
-                atualizar_lista_clientes_ui() # Atualiza a listagem na hora
+                atualizar_lista_clientes_ui()
             else:
                 page.snack_bar = ft.SnackBar(ft.Text("❌ Erro: O nome é obrigatório!"))
                 page.snack_bar.open = True
             page.update()
 
-        # Carrega a lista de clientes já salvos ao abrir a tela
         atualizar_lista_clientes_ui()
 
         container_principal.content = ft.Column([
-            ft.Text("Cadastro de Clientes", size=22, weight=ft.FontWeight.BOLD),
+            ft.Text("Cadastro de Clientes", size=22, weight=ft.font_weight.BOLD),
             txt_nome,
             txt_contato,
             ft.Row([
-                ft.ElevatedButton("Salvar Cliente", icon=ft.icons.SAVE, bgcolor="blue", color="white", on_click=salvar_cliente_click, expand=True)
+                ft.Button(
+                    content=ft.Row(
+                        [
+                            ft.Icon(name="SAVE", color="white"), 
+                            ft.Text("Salvar Cliente", color="white")
+                        ], 
+                        alignment="center"
+                    ),
+                    bgcolor="blue", 
+                    on_click=salvar_cliente_click, 
+                    expand=True
+                )
             ]),
             ft.Divider(),
-            ft.Text("Clientes Cadastrados:", weight=ft.FontWeight.BOLD, color="grey"),
+            ft.Text("Clientes Cadastrados:", weight=ft.font_weight.BOLD, color="grey"),
             lista_clientes_ui
         ], expand=True)
         page.update()
@@ -270,7 +269,6 @@ def main(page: ft.Page):
         ],
     )
 
-    # Inicia o aplicativo exibindo a tela de Vendas por padrão
     carregar_tela_vendas()
     page.add(container_principal)
 
