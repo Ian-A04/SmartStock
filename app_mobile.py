@@ -217,7 +217,7 @@ def main(page: ft.Page):
                 txt_desconto,
                 lbl_porcentagem,
                 ft.IconButton(
-                    icon=ft.Icon(name="ADD_BOX_ROUNDED"), # Correção da Sintaxe do Ícone aqui!
+                    icon=ft.Icon("ADD_BOX_ROUNDED"), # Correção da Sintaxe do Ícone aqui!
                     icon_color="blue", 
                     icon_size=35, 
                     on_click=adicionar_ao_carrinho_click
