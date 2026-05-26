@@ -52,7 +52,7 @@ def finalizar_venda(usuario_id, carrinho):
                 cursor.execute("SELECT quantidade, nome FROM produtos WHERE id = ?", (produto_id,))
                 prod_banco = cursor.fetchone()
                 
-                if not prod_banco or prod_banco[0] < quantity_venda:
+                if not prod_banco or prod_banco[0] < quantidade_venda:
                     nome_prod = prod_banco[1] if prod_banco else "Produto Desconhecido"
                     print(f"❌ Falha: Estoque insuficiente para o produto '{nome_prod}'. Venda cancelada.")
                     conn.rollback() # Cancela tudo se faltar um produto
