@@ -142,7 +142,7 @@ def main(page: ft.Page):
                 total += item["preco"] * item["quantidade"]
                 lista_carrinho_ui.controls.append(
                     ft.ListTile(
-                        leading=ft.Icon(ft.icons.BUILD_CIRCLE, color=ft.colors.BLUE_700),
+                        leading=ft.Icon(ft.icons.BUILD_CIRCLE, bgcolor="blue"),
                         title=ft.Text(item["nome"]),
                         subtitle=ft.Text(f"{item['quantidade']}x — R$ {item['preco']:.2f}"),
                         trailing=ft.Text(f"R$ {item['preco']*item['quantidade']:.2f}", weight=ft.FontWeight.BOLD)
@@ -153,8 +153,8 @@ def main(page: ft.Page):
 
         btn_fechar = ft.ElevatedButton(
             text="Confirmar Venda (R$ 0.00)",
-            bgcolor=ft.colors.GREEN_700,
-            color=ft.colors.WHITE,
+            bgcolor="green",
+            color="white",
             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
             on_click=fechar_venda_click,
             expand=True
@@ -165,9 +165,9 @@ def main(page: ft.Page):
             dropdown_cliente,
             ft.Row([
                 dropdown_produto,
-                ft.IconButton(icon=ft.icons.ADD_BOX_ROUNDED, icon_color=ft.colors.BLUE_700, icon_size=35, on_click=adicionar_ao_carrinho_click)
+                ft.IconButton(icon=ft.icons.ADD_BOX_ROUNDED, icon_color="blue", icon_size=35, on_click=adicionar_ao_carrinho_click)
             ]),
-            ft.Text("Produtos no Carrinho:", weight=ft.FontWeight.BOLD, color=ft.colors.GREY_700),
+            ft.Text("Produtos no Carrinho:", weight=ft.FontWeight.BOLD, color="grey"),
             lista_carrinho_ui,
             ft.Row([btn_fechar])
         ], expand=True)
@@ -182,11 +182,11 @@ def main(page: ft.Page):
         
         for prod in produtos:
             p_id, nome, codigo, preco, qtd = prod
-            cor_qtd = ft.colors.GREEN_600 if qtd > 5 else ft.colors.RED_600
+            cor_qtd = "green" if qtd > 5 else "red"
             
             lista_produtos_ui.controls.append(
                 ft.ListTile(
-                    leading=ft.CircleAvatar(content=ft.Text(str(p_id)), bgcolor=ft.colors.BLUE_50),
+                    leading=ft.CircleAvatar(content=ft.Text(str(p_id)), bgcolor="blue"),
                     title=ft.Text(nome, weight=ft.FontWeight.W_500),
                     subtitle=ft.Text(f"Cód: {codigo} | Qtd em estoque: {qtd}", color=cor_qtd),
                     trailing=ft.Text(f"R$ {preco:.2f}", weight=ft.FontWeight.BOLD)
@@ -212,7 +212,7 @@ def main(page: ft.Page):
             for cli in clientes:
                 lista_clientes_ui.controls.append(
                     ft.ListTile(
-                        leading=ft.Icon(ft.icons.PERSON, color=ft.colors.GREY_600),
+                        leading=ft.Icon(ft.icons.PERSON, color="grey"),
                         title=ft.Text(cli[1]),
                         subtitle=ft.Text(f"Contato: {cli[2]}")
                     )
@@ -242,10 +242,10 @@ def main(page: ft.Page):
             txt_nome,
             txt_contato,
             ft.Row([
-                ft.ElevatedButton("Salvar Cliente", icon=ft.icons.SAVE, bgcolor=ft.colors.BLUE_700, color=ft.colors.WHITE, on_click=salvar_cliente_click, expand=True)
+                ft.ElevatedButton("Salvar Cliente", icon=ft.icons.SAVE, bgcolor="blue", color="white", on_click=salvar_cliente_click, expand=True)
             ]),
             ft.Divider(),
-            ft.Text("Clientes Cadastrados:", weight=ft.FontWeight.BOLD, color=ft.colors.GREY_700),
+            ft.Text("Clientes Cadastrados:", weight=ft.FontWeight.BOLD, color="grey"),
             lista_clientes_ui
         ], expand=True)
         page.update()
