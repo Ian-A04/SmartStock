@@ -13,7 +13,7 @@ def inicializar_banco():
             )
         """)
 
-        # 2. Tabela de Clientes (Nova!)
+        # 2. Tabela de Clientes
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS clientes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,22 +22,26 @@ def inicializar_banco():
             )
         """)
 
-        # 3. Tabela de Usuários (Login e Cadastro!)
+        # 3. Tabela de Usuários (Vendedores) - ATUALIZADA!
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 usuario TEXT UNIQUE NOT NULL,
-                senha TEXT NOT NULL
+                senha TEXT NOT NULL,
+                nome_completo TEXT NOT NULL DEFAULT 'Vendedor Padrão',
+                telefone TEXT DEFAULT '(00) 00000-0000'
             )
         """)
 
-        # 4. Tabela de Notas (Com vínculo ao Cliente)
+        # 4. Tabela de Notas (Com vínculo ao Cliente e ao Vendedor) - ATUALIZADA!
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS notas (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 data TEXT NOT NULL,
                 cliente_id INTEGER,
-                FOREIGN KEY (cliente_id) REFERENCES clientes (id)
+                usuario_id INTEGER,
+                FOREIGN KEY (cliente_id) REFERENCES clientes (id),
+                FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
             )
         """)
 
@@ -54,14 +58,34 @@ def inicializar_banco():
             )
         """)
 
-        # Tenta adicionar a coluna cliente_id caso a tabela notas já exista
+        # --- Camada de Compatibilidade (Se as tabelas já existiam antes) ---
+        
+        # Garante a coluna cliente_id na tabela notas
         try:
             cursor.execute("ALTER TABLE notas ADD COLUMN cliente_id INTEGER REFERENCES clientes(id)")
         except:
             pass
 
+        # Garante a coluna usuario_id na tabela notas
+        try:
+            cursor.execute("ALTER TABLE notas ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id)")
+        except:
+            pass
+
+        # Garante a coluna nome_completo na tabela usuarios
+        try:
+            cursor.execute("ALTER TABLE usuarios ADD COLUMN nome_completo TEXT NOT NULL DEFAULT 'Vendedor Padrão'")
+        except:
+            pass
+
+        # Garante a coluna telefone na tabela usuarios
+        try:
+            cursor.execute("ALTER TABLE usuarios ADD COLUMN telefone TEXT DEFAULT '(00) 00000-0000'")
+        except:
+            pass
+
         conn.commit()
-    print("✅ Banco de Dados atualizado: Tabelas de Clientes e Usuários prontas!")
+    print("✅ Banco de Dados atualizado: Informações do Vendedor e Tabelas estruturadas!")
 
 if __name__ == "__main__":
     inicializar_banco()
