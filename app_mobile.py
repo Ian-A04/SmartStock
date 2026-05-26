@@ -34,35 +34,201 @@ def main(page: ft.Page):
     # Conteúdo principal que muda conforme a aba clicada
     container_principal = ft.Container(expand=True, padding=15)
 
-    # --- ABA 1: VENDAS (PDV MOBILE REAL) ---
+    # --- ABA 1: VENDAS (PDV MOBILE REAL COM QUANTIDADE E DESCONTO) ---
     def carregar_tela_vendas():
         lista_carrinho_ui = ft.ListView(expand=True, spacing=10)
         
-        # Dropdown para selecionar o cliente cadastrado no banco de dados
+        # Dropdown de Clientes
         dropdown_cliente = ft.Dropdown(
             label="Selecionar Cliente",
             hint_text="Selecione ou deixe vazio para Consumidor Final",
             border_radius=8,
         )
-        
         clientes_bd = buscar_clientes_do_banco()
         dropdown_cliente.options = [ft.dropdown.Option(key="", text="🛒 Consumidor Final")]
         for cli in clientes_bd:
             dropdown_cliente.options.append(ft.dropdown.Option(key=str(cli[0]), text=f"👤 {cli[1]}"))
 
-        # Dropdown para selecionar o produto do banco
+        # Dropdown de Produtos
         dropdown_produto = ft.Dropdown(
             label="Escolher Produto",
             border_radius=8,
             expand=True
         )
-        
         produtos_bd = buscar_produtos_do_banco()
         dropdown_produto.options = []
         for prod in produtos_bd:
             dropdown_produto.options.append(
                 ft.dropdown.Option(key=str(prod[0]), text=f"{prod[1]} (R$ {prod[3]:.2f})")
             )
+
+        # NOVOS CAMPOS: Quantidade e Desconto
+        txt_quantidade = ft.TextField(label="Qtd", value="1", keyboard_type=ft.KeyboardType.NUMBER, width=70, border_radius=8)
+        txt_desconto = ft.TextField(label="Desc. (R$)", value="0.00", keyboard_type=ft.KeyboardType.NUMBER, width=100, border_radius=8)
+        lbl_porcentagem = ft.Text("% Desconto: 0%", color="grey", size=12, weight=ft.FontWeight.W_500)
+
+        # Função para calcular a porcentagem de desconto dinamicamente quando o usuário digita
+        def calcular_porcentagem_desc(e):
+            if not dropdown_produto.value:
+                return
+            try:
+                p_id = int(dropdown_produto.value)
+                prod = next((p for p in produtos_bd if p[0] == p_id), None)
+                qtd = int(txt_quantidade.value) if txt_quantidade.value else 1
+                desc_valor = float(txt_desconto.value) if txt_desconto.value else 0.0
+                
+                if prod and desc_valor > 0:
+                    subtotal_bruto = prod[3] * qtd
+                    porcentagem = (desc_valor / subtotal_bruto) * 100
+                    lbl_porcentagem.value = f"% Desconto: {porcentagem:.1f}%"
+                else:
+                    lbl_porcentagem.value = "% Desconto: 0%"
+            except ValueError:
+                lbl_porcentagem.value = "% Desconto: 0%"
+            page.update()
+
+        txt_desconto.on_change = calcular_porcentagem_desc
+        txt_quantidade.on_change = calcular_porcentagem_desc
+
+        def adicionar_ao_carrinho_click(e):
+            if not dropdown_produto.value:
+                return
+            
+            try:
+                p_id = int(dropdown_produto.value)
+                qtd = int(txt_quantidade.value) if txt_quantidade.value else 1
+                desc_total = float(txt_desconto.value) if txt_desconto.value else 0.0
+                
+                if qtd <= 0:
+                    return
+
+                produto_selecionado = next((p for p in produtos_bd if p[0] == p_id), None)
+                
+                if produto_selecionado:
+                    preco_base = produto_selecionado[3]
+                    subtotal_bruto = preco_base * qtd
+                    
+                    # Aplica o desconto proporcional por unidade no carrinho
+                    preco_final_unitario = (subtotal_bruto - desc_total) / qtd
+                    
+                    if preco_final_unitario < 0:
+                        preco_final_unitario = 0.0  # Evita preço negativo
+
+                    carrinho_atual.append({
+                        "id": produto_selecionado[0],
+                        "nome": produto_selecionado[1],
+                        "quantidade": qtd,
+                        "preco": preco_final_unitario, # Guarda o preço já com desconto aplicado
+                        "desconto_aplicado": desc_total
+                    })
+                    
+                    # Reseta os campos para o padrão
+                    txt_quantidade.value = "1"
+                    txt_desconto.value = "0.00"
+                    lbl_porcentagem.value = "% Desconto: 0%"
+                    atualizar_carrinho_ui()
+            except ValueError:
+                pass
+
+        def fechar_venda_click(e):
+            if not carrinho_atual:
+                page.snack_bar = ft.SnackBar(ft.Text("⚠️ O carrinho está vazio!"))
+                page.snack_bar.open = True
+                page.update()
+                return
+
+            cliente_selecionado_id = dropdown_cliente.value if dropdown_cliente.value else ""
+            
+            try:
+                with obter_conexao() as (conn, cursor):
+                    c_id = int(cliente_selecionado_id) if cliente_selecionado_id else None
+                    cursor.execute(
+                        "INSERT INTO notas (data, cliente_id, usuario_id) VALUES (date('now'), ?, ?)",
+                        (c_id, usuario_logado_id)
+                    )
+                    nota_id = cursor.lastrowid
+                    
+                    for item in carrinho_atual:
+                        cursor.execute(
+                            "INSERT INTO itens_nota (nota_id, produto_id, quantidade, preco) VALUES (?, ?, ?, ?)",
+                            (nota_id, item['id'], item['quantidade'], item['preco'])
+                        )
+                        cursor.execute(
+                            "UPDATE produtos SET quantidade = quantidade - ? WHERE id = ?",
+                            (item['quantidade'], item['id'])
+                        )
+                    conn.commit()
+                
+                from utils.gerador_pdf import gerar_danfe
+                gerar_danfe(nota_id)
+
+                carrinho_atual.clear()
+                atualizar_carrinho_ui()
+                dropdown_cliente.value = ""
+                
+                page.snack_bar = ft.SnackBar(ft.Text(f"✅ Venda {nota_id} realizada! PDF Gerado com sucesso."))
+                page.snack_bar.open = True
+            except Exception as ex:
+                page.snack_bar = ft.SnackBar(ft.Text(f"❌ Erro ao fechar venda: {ex}"))
+                page.snack_bar.open = True
+            
+            page.update()
+
+        def atualizar_carrinho_ui():
+            lista_carrinho_ui.controls.clear()
+            total = 0
+            for item in carrinho_atual:
+                total_item = item["preco"] * item["quantidade"]
+                total += total_item
+                
+                txt_sub_item = f"{item['quantidade']}x — R$ {item['preco']:.2f}"
+                if item["desconto_aplicado"] > 0:
+                    txt_sub_item += f" (Desc: R$ {item['desconto_aplicado']:.2f})"
+
+                lista_carrinho_ui.controls.append(
+                    ft.ListTile(
+                        leading=ft.Icon(name="BUILD_CIRCLE", color="blue"),
+                        title=ft.Text(item["nome"]),
+                        subtitle=ft.Text(txt_sub_item),
+                        trailing=ft.Text(f"R$ {total_item:.2f}", weight=ft.FontWeight.BOLD)
+                    )
+                )
+            texto_botao.value = f"Confirmar Venda (R$ {total:.2f})"
+            page.update()
+
+        texto_botao = ft.Text("Confirmar Venda (R$ 0.00)", color="white", weight=ft.FontWeight.BOLD)
+
+        btn_fechar = ft.Button(
+            content=texto_botao,
+            bgcolor="green",
+            on_click=fechar_venda_click,
+            expand=True
+        )
+
+        # Montagem do Layout da Tela com os Novos Elementos
+        container_principal.content = ft.Column([
+            ft.Text("Caixa Operacional", size=22, weight=ft.FontWeight.BOLD),
+            dropdown_cliente,
+            ft.Row([
+                dropdown_produto,
+                txt_quantidade,
+            ]),
+            ft.Row([
+                txt_desconto,
+                lbl_porcentagem,
+                ft.IconButton(
+                    icon=ft.Icon(name="ADD_BOX_ROUNDED"), # Correção da Sintaxe do Ícone aqui!
+                    icon_color="blue", 
+                    icon_size=35, 
+                    on_click=adicionar_ao_carrinho_click
+                )
+            ], alignment="spaceBetween"),
+            ft.Divider(),
+            ft.Text("Produtos no Carrinho:", weight=ft.FontWeight.BOLD, color="grey"),
+            lista_carrinho_ui,
+            ft.Row([btn_fechar])
+        ], expand=True)
+        page.update()
 
         def adicionar_ao_carrinho_click(e):
             if not dropdown_produto.value:
