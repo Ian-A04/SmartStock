@@ -264,9 +264,9 @@ def main(page: ft.Page):
         selected_index=0,
         on_change=mudar_aba,
         destinations=[
-            ft.NavigationDestination(icon=ft.icons.SHOPPING_BAG, label="Vendas"),
-            ft.NavigationDestination(icon=ft.icons.LAYERS, label="Estoque"),
-            ft.NavigationDestination(icon=ft.icons.PEOPLE_ALT, label="Clientes"),
+            ft.NavigationDestination(icon="SHOPPING_BAG", label="Vendas"),
+            ft.NavigationDestination(icon="LAYERS", label="Estoque"),
+            ft.NavigationDestination(icon="PEOPLE_ALT", label="Clientes"),
         ],
     )
 
