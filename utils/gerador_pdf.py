@@ -1,76 +1,117 @@
 from fpdf import FPDF
 from database import obter_conexao
 
+class NotaFiscalPDF(FPDF):
+    def header(self):
+        # Este método reconstrói o topo idêntico ao modelo comercial
+        pass
+
 def gerar_danfe(nota_id):
     with obter_conexao() as (conn, cursor):
-        # 1. Busca dados da nota E o nome do cliente usando LEFT JOIN
+        # 1. Busca dados agregados da nota e cliente
         cursor.execute("""
-            SELECT n.data, c.nome 
+            SELECT n.data, c.nome, c.contato 
             FROM notas n
             LEFT JOIN clientes c ON n.cliente_id = c.id
             WHERE n.id = ?
         """, (nota_id,))
-        resultado = cursor.fetchone()
+        dados_nota = cursor.fetchone()
 
-        if not resultado:
-            print("Nota não encontrada!")
+        if not dados_nota:
+            print("❌ Nota não encontrada!")
             return 
         
-        data_nota = resultado[0]
-        # Se o nome do cliente for None (venda sem cliente), vira "Consumidor Final"
-        nome_cliente = resultado[1] if resultado[1] else "Consumidor Final"
+        data_nota, nome_cliente, contato_cliente = dados_nota
+        nome_cliente = nome_cliente if nome_cliente else "Consumidor Final"
+        contato_cliente = contato_cliente if contato_cliente else "Não Informado"
 
-        # 2. Busca itens da nota
+        # 2. Busca itens associados à nota
         cursor.execute("""
-            SELECT produtos.nome, itens_nota.quantidade, itens_nota.preco
-            FROM itens_nota
-            JOIN produtos ON itens_nota.produto_id = produtos.id
-            WHERE itens_nota.nota_id = ?
+            SELECT p.id, p.nome, i.quantidade, i.preco
+            FROM itens_nota i
+            JOIN produtos p ON i.produto_id = p.id
+            WHERE i.nota_id = ?
         """, (nota_id,))
         itens = cursor.fetchall()
 
-        # 3. Configuração do PDF
+        # 3. Inicialização e Configuração do Layout do PDF
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", "B", 16)
+        pdf.set_margins(10, 10, 10)
+        
+        # --- BLOCO 1: EMISSOR VS DADOS DA VENDA ---
+        pdf.set_font("Arial", "B", 11)
+        # Coluna da Esquerda (Emissor)
+        pdf.cell(110, 5, "SMARTSTOQUE SISTEMAS LTDA", ln=0)
+        # Coluna da Direita (Dados da Venda)
+        pdf.cell(80, 5, f"Venda: {nota_id}", ln=1, align="R")
+        
+        pdf.set_font("Arial", "", 9)
+        pdf.cell(110, 5, "Contato: (61) 99521-8360", ln=0)
+        pdf.cell(80, 5, f"Data emissao: {data_nota}", ln=1, align="R")
+        
+        pdf.cell(110, 5, "Forma pagamento: a Vista", ln=0)
+        pdf.cell(80, 5, f"Entrega: pronta entrega ({data_nota})", ln=1, align="R")
+        
+        pdf.ln(4)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y()) # Linha divisória
+        pdf.ln(4)
 
-        # Cabeçalho
-        pdf.cell(190, 10, "DANFE - RECIBO DE VENDA", ln=True, align="C")
-        pdf.ln(5)
-        
-        # Informações da Nota e Cliente
+        # --- BLOCO 2: DADOS DO CLIENTE ---
         pdf.set_font("Arial", "B", 10)
-        pdf.cell(95, 7, f"NOTA ID: {nota_id}")
-        pdf.cell(95, 7, f"DATA: {data_nota}", ln=True, align="R")
+        pdf.cell(190, 5, "DADOS DO CLIENTE", ln=1)
+        pdf.set_font("Arial", "", 9)
+        pdf.cell(190, 5, f"Cliente: {nome_cliente}", ln=1)
+        pdf.cell(190, 5, f"Fone/Contato: {contato_cliente}", ln=1)
+        pdf.cell(190, 5, "Endereco: Nao Informado", ln=1)
         
-        pdf.set_font("Arial", "", 10)
-        pdf.cell(190, 7, f"CLIENTE: {nome_cliente}", ln=True) # Exibe o nome do cliente
-        
-        pdf.line(10, 45, 200, 45) # Ajustei a altura da linha para não atropelar o texto
-        pdf.ln(10)
+        pdf.ln(4)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y()) # Linha divisória
+        pdf.ln(4)
 
-        # Tabela itens
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(100, 10, "Produto", border=1)
-        pdf.cell(30, 10, "Qtd", border=1, align="C")
-        pdf.cell(30, 10, "V. Unit", border=1, align="C")
-        pdf.cell(30, 10, "Total", border=1, ln=True, align="C")
+        # --- BLOCO 3: TABELA DE ITENS (CABEÇALHO) ---
+        pdf.set_font("Arial", "B", 9)
+        # Altura padrão das células da tabela = 6
+        pdf.cell(15, 6, "Codigo", border=1, align="C")
+        pdf.cell(85, 6, "Descricao", border=1)
+        pdf.cell(15, 6, "Qtde", border=1, align="C")
+        pdf.cell(25, 6, "Preco Brut.", border=1, align="C")
+        pdf.cell(20, 6, "Descto", border=1, align="C")
+        pdf.cell(30, 6, "Total", border=1, ln=True, align="C")
         
-        pdf.set_font("Arial", "", 10)
-        total_geral = 0
+        # --- BLOCO 4: PREENCHIMENTO DOS ITENS ---
+        pdf.set_font("Arial", "", 9)
+        total_bruto = 0
+        total_itens_qtd = 0
+        
         for item in itens:
-            nome, qtd, preco = item
-            total_item = qtd * preco
-            total_geral += total_item
-            pdf.cell(100, 10, str(nome), border=1)
-            pdf.cell(30, 10, str(qtd), border=1, align="C")
-            pdf.cell(30, 10, f"R$ {preco:.2f}", border=1, align="C")
-            pdf.cell(30, 10, f"R$ {total_item:.2f}", border=1, ln=True, align="C")
+            prod_id, nome_prod, qtd, preco_unit = item
+            subtotal_item = qtd * preco_unit
+            
+            total_bruto += subtotal_item
+            total_itens_qtd += qtd
+            
+            pdf.cell(15, 6, str(prod_id), border=1, align="C")
+            pdf.cell(85, 6, f" {nome_prod}", border=1)
+            pdf.cell(15, 6, str(qtd), border=1, align="C")
+            pdf.cell(25, 6, f"R$ {preco_unit:.2f}", border=1, align="R")
+            pdf.cell(20, 6, "0,00%", border=1, align="C") # Padrão sem desconto individual
+            pdf.cell(30, 6, f"R$ {subtotal_item:.2f}", border=1, ln=True, align="R")
 
-        # Total
-        pdf.ln(5)
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(190, 10, f"TOTAL: R$ {total_geral:.2f}", align="R")
+        # --- BLOCO 5: TOTAIS E FECHAMENTO ---
+        pdf.ln(2)
+        pdf.set_font("Arial", "B", 9)
+        
+        # Alinhando os totais de forma resumida na parte inferior
+        pdf.cell(100, 6, f"Quantidade Total de Itens: {total_itens_qtd}", ln=0)
+        pdf.cell(90, 6, f"Valor Total: R$ {total_bruto:.2f}", ln=1, align="R")
+        
+        # Rodapé de Emissão
+        pdf.ln(10)
+        pdf.set_font("Arial", "I", 8)
+        pdf.cell(190, 5, f"Gerado automaticamente em {data_nota} | SmartStoque", align="C")
 
-        pdf.output(f"nota_fiscal_{nota_id}.pdf")
-        print(f"✅ PDF 'nota_fiscal_{nota_id}.pdf' gerado com sucesso!")
+        # 4. Salvando o arquivo
+        nome_arquivo = f"nota_fiscal_{nota_id}.pdf"
+        pdf.output(nome_arquivo)
+        print(f"✅ {nome_arquivo} gerado com sucesso no novo formato!")
