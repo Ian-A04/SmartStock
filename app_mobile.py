@@ -153,13 +153,13 @@ def main(page: ft.Page):
         )
 
         container_principal.content = ft.Column([
-            ft.Text("Caixa Operacional", size=22, weight=ft.font_weight.BOLD),
+            ft.Text("Caixa Operacional", size=22, weight=ft.FontWeight.BOLD),
             dropdown_cliente,
             ft.Row([
                 dropdown_produto,
                 ft.IconButton(icon="ADD_BOX_ROUNDED", icon_color="blue", icon_size=35, on_click=adicionar_ao_carrinho_click)
             ]),
-            ft.Text("Produtos no Carrinho:", weight=ft.font_weight.BOLD, color="grey"),
+            ft.Text("Produtos no Carrinho:", weight=ft.FontWeight.BOLD, color="grey"),
             lista_carrinho_ui,
             ft.Row([btn_fechar])
         ], expand=True)
@@ -226,7 +226,7 @@ def main(page: ft.Page):
         atualizar_lista_clientes_ui()
 
         container_principal.content = ft.Column([
-            ft.Text("Cadastro de Clientes", size=22, weight=ft.font_weight.BOLD),
+            ft.Text("Cadastro de Clientes", size=22, weight=ft.FontWeight.BOLD),
             txt_nome,
             txt_contato,
             ft.Row([
@@ -273,4 +273,4 @@ def main(page: ft.Page):
     page.add(container_principal)
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.run(main)
