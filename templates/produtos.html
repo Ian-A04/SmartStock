@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartStoque - Produtos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f8f9fa; }
+        .navbar { background: #1a1a1a; padding: 15px; display: flex; justify-content: space-around; }
+        .navbar a { color: #aaa; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .navbar a.active { color: white; border-bottom: 2px solid #007bff; padding-bottom: 4px; }
+        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { margin-bottom: 15px; font-size: 20px; }
+        .form-group { position: relative; margin-bottom: 15px; }
+        label { font-size: 11px; color: #666; position: absolute; top: -8px; left: 10px; background: #fff; padding: 0 4px; font-weight: 600; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; outline: none; }
+        .btn-save { background: #007bff; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 25px; }
+        .prod-list { display: flex; flex-direction: column; gap: 10px; }
+        .prod-item { display: flex; align-items: center; gap: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #fff; }
+        .prod-img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; background: #eee; }
+        .prod-details { flex-grow: 1; }
+        .prod-nome { font-weight: 600; font-size: 15px; }
+        .prod-preco { font-size: 13px; color: #28a745; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/vendas">🛒 Caixa</a>
+        <a href="/produtos" class="active">📦 Produtos</a>
+        <a href="/usuarios">👤 Usuários</a>
+        <a href="/" onclick="localStorage.clear()">❌ Sair</a>
+    </div>
+
+    <div class="container">
+        <h2>Cadastrar Novo Produto</h2>
+        
+        <div class="form-group">
+            <label>Nome do Produto</label>
+            <input type="text" id="prod-nome">
+        </div>
+        <div class="form-group">
+            <label>Preço Unitário (R$)</label>
+            <input type="number" id="prod-preco" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Foto do Produto (Galeria/Câmera)</label>
+            <input type="file" id="prod-imagem" accept="image/*" style="padding: 8px;">
+        </div>
+        
+        <button class="btn-save" onclick="salvarProduto()">Salvar Produto</button>
+
+        <h2>Produtos Cadastrados</h2>
+        <div class="prod-list" id="lista-produtos"></div>
+    </div>
+
+    <script>
+        async function listarProdutos() {
+            const resposta = await fetch('/api/produtos');
+            const produtos = await resposta.json();
+            const lista = document.getElementById('lista-produtos');
+            lista.innerHTML = '';
+
+            produtos.forEach(p => {
+                const imgUrl = p.imagem ? `/static/uploads/${p.imagem}` : 'https://placehold.co/50x50?text=Sem+Foto';
+                lista.innerHTML += `
+                    <div class="prod-item">
+                        <img src="${imgUrl}" class="prod-img">
+                        <div class="prod-details">
+                            <div class="prod-nome">${p.nome}</div>
+                            <div class="prod-preco">R$ ${p.preco.toFixed(2)}</div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function salvarProduto() {
+            const nome = document.getElementById('prod-nome').value;
+            const preco = document.getElementById('prod-preco').value;
+            const campoImg = document.getElementById('prod-imagem');
+
+            if(!nome || !preco) return alert("Preencha os campos obrigatórios!");
+
+            const formData = new FormData();
+            formData.append('nome', nome);
+            formData.append('preco', preco);
+            if(campoImg.files.length > 0) {
+                formData.append('imagem', campoImg.files[0]);
+            }
+
+            const resposta = await fetch('/api/produtos', {
+                method: 'POST',
+                body: formData
+            });
+
+            if(resposta.ok) {
+                alert("Produto salvo!");
+                document.getElementById('prod-nome').value = '';
+                document.getElementById('prod-preco').value = '';
+                campoImg.value = '';
+                listarProdutos();
+            }
+        }
+
+        listarProdutos();
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartStoque - Caixa</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f8f9fa; padding-bottom: 30px; }
+        .navbar { background: #1a1a1a; padding: 15px; display: flex; justify-content: space-around; }
+        .navbar a { color: #aaa; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .navbar a.active { color: white; border-bottom: 2px solid #007bff; padding-bottom: 4px; }
+        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 15px; }
+        h2 { font-size: 20px; font-weight: 700; }
+        .form-group { position: relative; width: 100%; }
+        label { font-size: 11px; color: #666; position: absolute; top: -8px; left: 10px; background: #fff; padding: 0 4px; font-weight: 600; }
+        select, input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; outline: none; }
+        .row { display: flex; gap: 10px; align-items: center; }
+        .flex-grow { flex-grow: 1; }
+        .w-70 { width: 70px; }
+        .w-100 { width: 100px; }
+        .discount-text { font-size: 12px; color: #888; font-weight: 500; }
+        .btn-add { background: none; border: none; color: #007bff; font-size: 36px; cursor: pointer; line-height: 1; }
+        .carrinho-list { min-height: 120px; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; }
+        .item-nome { font-weight: 600; font-size: 14px; }
+        .item-sub { font-size: 12px; color: #666; }
+        .item-total { font-weight: 700; color: #111; }
+        .btn-confirm { background-color: #28a745; color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/vendas" class="active">🛒 Caixa</a>
+        <a href="/produtos">📦 Produtos</a>
+        <a href="/usuarios">👤 Usuários</a>
+        <a href="/" onclick="localStorage.clear()">❌ Sair</a>
+    </div>
+
+    <div class="container">
+        <h2>Caixa Operacional</h2>
+
+        <div class="form-group">
+            <label>Selecionar Cliente</label>
+            <select id="dropdown-cliente">
+                <option value="">🛒 Consumidor Final</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="form-group flex-grow">
+                <label>Escolher Produto</label>
+                <select id="dropdown-produto"></select>
+            </div>
+            <div class="form-group w-70">
+                <label>Qtd</label>
+                <input type="number" id="txt-quantidade" value="1" min="1">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group w-100">
+                <label>Desc. (R$)</label>
+                <input type="number" id="txt-desconto" value="0.00" step="0.01">
+            </div>
+            <div class="discount-text flex-grow" id="lbl-porcentagem">% Desconto: 0%</div>
+            <button class="btn-add" id="btn-adicionar">+</button>
+        </div>
+
+        <hr style="border:0; border-top: 1px solid #eee;">
+        <div style="font-size: 13px; font-weight: bold; color: #666;">Produtos no Carrinho:</div>
+
+        <div class="carrinho-list" id="lista-carrinho"></div>
+
+        <button class="btn-confirm" id="btn-fechar-venda" onclick="finalizarVenda()">
+            Confirmar Venda (R$ 0.00)
+        </button>
+    </div>
+
+    <script>
+        let carrinho = [];
+
+        async function inicializar() {
+            // Busca Clientes
+            const resClientes = await fetch('/api/clientes');
+            const clientes = await resClientes.json();
+            const comboCli = document.getElementById('dropdown-cliente');
+            clientes.forEach(c => comboCli.innerHTML += `<option value="${c.id}">👤 ${c.nome}</option>`);
+
+            // Busca Produtos
+            const resProdutos = await fetch('/api/produtos');
+            const produtos = await resProdutos.json();
+            const comboProd = document.getElementById('dropdown-produto');
+            comboProd.innerHTML = '<option value="">Selecione um produto...</option>';
+            produtos.forEach(p => comboProd.innerHTML += `<option value="${p.id}" data-preco="${p.preco}">${p.nome} (R$ ${p.preco.toFixed(2)})</option>`);
+        }
+
+        // Lógica de cálculo de desconto e adição do carrinho do JS anterior integrada aqui...
+        document.getElementById('btn-adicionar').addEventListener('click', () => {
+            const comboProd = document.getElementById('dropdown-produto');
+            const opcao = comboProd.options[comboProd.selectedIndex];
+            if (!opcao.value) return;
+
+            const id = opcao.value;
+            const nome = opcao.text.split(' (')[0];
+            const precoBase = parseFloat(opcao.getAttribute('data-preco'));
+            const qtd = parseInt(document.getElementById('txt-quantidade').value) || 1;
+            const desc = parseFloat(document.getElementById('txt-desconto').value) || 0;
+
+            const precoFinal = ((precoBase * qtd) - desc) / qtd;
+
+            carrinho.push({ id, nome, quantidade: qtd, preco: precoFinal > 0 ? precoFinal : 0, descontoAplicado: desc });
+            atualizarUI();
+        });
+
+        function atualizarUI() {
+            const lista = document.getElementById('lista-carrinho');
+            lista.innerHTML = '';
+            let total = 0;
+            carrinho.forEach(item => {
+                total += item.preco * item.quantidade;
+                lista.innerHTML += `
+                    <div class="carrinho-item">
+                        <div>
+                            <div class="item-nome">${item.nome}</div>
+                            <div class="item-sub">${item.quantidade}x — R$ ${item.preco.toFixed(2)}</div>
+                        </div>
+                        <div class="item-total">R$ ${(item.preco * item.quantidade).toFixed(2)}</div>
+                    </div>`;
+            });
+            document.getElementById('btn-fechar-venda').innerText = `Confirmar Venda (R$ ${total.toFixed(2)})`;
+        }
+
+        async function finalizarVenda() {
+            if(carrinho.length === 0) return alert("Carrinho Vazio");
+            const cliente_id = document.getElementById('dropdown-cliente').value;
+
+            const resposta = await fetch('/api/vendas/confirmar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cliente_id: cliente_id ? parseInt(cliente_id) : null, carrinho })
+            });
+
+            const res = await resposta.json();
+            alert(res.mensagem);
+            if(res.sucesso) { carrinho = []; atualizarUI(); }
+        }
+
+        inicializar();
+    </script>
+</body>
+</html>
