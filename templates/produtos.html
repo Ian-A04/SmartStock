@@ -1,109 +1,167 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartStoque - Produtos</title>
+    <title>SmartStoque Mobile - Produtos</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #f8f9fa; }
-        .navbar { background: #1a1a1a; padding: 15px; display: flex; justify-content: space-around; }
-        .navbar a { color: #aaa; text-decoration: none; font-weight: 600; font-size: 14px; }
-        .navbar a.active { color: white; border-bottom: 2px solid #007bff; padding-bottom: 4px; }
-        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h2 { margin-bottom: 15px; font-size: 20px; }
-        .form-group { position: relative; margin-bottom: 15px; }
-        label { font-size: 11px; color: #666; position: absolute; top: -8px; left: 10px; background: #fff; padding: 0 4px; font-weight: 600; }
-        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; outline: none; }
-        .btn-save { background: #007bff; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 25px; }
-        .prod-list { display: flex; flex-direction: column; gap: 10px; }
-        .prod-item { display: flex; align-items: center; gap: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #fff; }
-        .prod-img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; background: #eee; }
-        .prod-details { flex-grow: 1; }
-        .prod-nome { font-weight: 600; font-size: 15px; }
-        .prod-preco { font-size: 13px; color: #28a745; font-weight: bold; }
+        body { background-color: #0d0d0d; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #16161a; border-bottom: 1px solid #222; }
+        .navbar .logo { font-weight: bold; font-size: 16px; color: #ff3b30; display: flex; align-items: center; gap: 5px; }
+        .navbar .menu { display: flex; gap: 20px; }
+        .navbar .menu a { color: #8e8e93; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .navbar .menu a:hover, .navbar .menu a.active { color: #ffffff; font-weight: bold; }
+        .navbar .menu a.sair { color: #ff453a; }
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        h3 { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
+        .form-group { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 40px; background: #16161a; padding: 20px; border-radius: 8px; border: 1px solid #222; flex-wrap: wrap; }
+        .input-box { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 150px; }
+        .input-box label { font-size: 12px; color: #8e8e93; }
+        .input-box input { background: #24242b; border: 1px solid #3a3a44; border-radius: 6px; padding: 10px; color: #fff; font-size: 14px; outline: none; }
+        .input-box input:focus { border-color: #007aff; }
+        .btn-cadastrar { background: #007aff; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s; height: 38px; }
+        .btn-cadastrar:hover { background: #0062cc; }
+        .search-box { width: 100%; max-width: 300px; background: #16161a; border: 1px solid #3a3a44; border-radius: 6px; padding: 10px; color: #fff; margin-bottom: 20px; outline: none; font-size: 14px; }
+        .table-container { background: #16161a; border-radius: 8px; border: 1px solid #222; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background: #1c1c21; padding: 15px 20px; color: #8e8e93; font-weight: 500; border-bottom: 1px solid #222; }
+        td { padding: 15px 20px; border-bottom: 1px solid #222; color: #e5e5ea; }
+        tr:last-child td { border-bottom: none; }
+        .price { color: #34c759; font-weight: 500; }
+        .qty { color: #ff9500; font-weight: 500; }
+        .btn-editar { background: #24242b; color: #fff; border: 1px solid #3a3a44; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-editar:hover { background: #3a3a44; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <a href="/vendas">🛒 Caixa</a>
-        <a href="/produtos" class="active">📦 Produtos</a>
-        <a href="/usuarios">👤 Usuários</a>
-        <a href="/" onclick="localStorage.clear()">❌ Sair</a>
+        <div class="logo">📌 SmartStoque Mobile</div>
+        <div class="menu">
+            <a href="/vendas">Caixa Operacional</a>
+            <a href="/produtos" class="active">Produtos</a>
+            <a href="/clientes">Cadastrar Clientes</a>
+            <a href="/" class="sair">Sair</a>
+        </div>
     </div>
 
     <div class="container">
-        <h2>Cadastrar Novo Produto</h2>
-        
-        <div class="form-group">
-            <label>Nome do Produto</label>
-            <input type="text" id="prod-nome">
-        </div>
-        <div class="form-group">
-            <label>Preço Unitário (R$)</label>
-            <input type="number" id="prod-preco" step="0.01">
-        </div>
-        <div class="form-group">
-            <label>Foto do Produto (Galeria/Câmera)</label>
-            <input type="file" id="prod-imagem" accept="image/*" style="padding: 8px;">
-        </div>
-        
-        <button class="btn-save" onclick="salvarProduto()">Salvar Produto</button>
+        <h3>Cadastrar Novo Produto</h3>
+        <form id="formProduto" class="form-group" enctype="multipart/form-data">
+            <label>Imagem do Produto</label>
+            <input type="file" id="input-imagem" name="imagem" accept="image/*">
+            
+            <div class="input-box">
+                <label>Nome do Produto</label>
+                <input type="text" id="nome" name="nome" placeholder="Nome do Produto" required>
+            </div>
+            <div class="input-box">
+                <label>Preço (R$)</label>
+                <input type="number" step="0.01" id="preco" name="preco" placeholder="Preço (R$)" required>
+            </div>
+            <div class="input-box">
+                <label>Qtd Estoque Inicial</label>
+                <input type="number" id="quantidade" name="quantidade" placeholder="Qtd Estoque Inicial" required>
+            </div>
+            <button type="submit" class="btn-cadastrar">Cadastrar</button>
+        </form>
 
-        <h2>Produtos Cadastrados</h2>
-        <div class="prod-list" id="lista-produtos"></div>
+        <h3>Produtos Cadastrados</h3>
+        <input type="text" id="busca" class="search-box" placeholder="Buscar produto por nome..." oninput="filtrarProdutos()">
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Imagem</th>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Qtd Estoque</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaProdutos">
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        async function listarProdutos() {
-            const resposta = await fetch('/api/produtos');
-            const produtos = await resposta.json();
-            const lista = document.getElementById('lista-produtos');
+        async function carregarProdutos() {
+            const res = await fetch('/api/produtos');
+            const produtos = await res.json();
+            const lista = document.getElementById('tabelaProdutos');
             lista.innerHTML = '';
-
             produtos.forEach(p => {
-                const imgUrl = p.imagem ? `/static/uploads/${p.imagem}` : 'https://placehold.co/50x50?text=Sem+Foto';
+                // SACADA VISUAL: Se o produto tiver imagem, exibe ela pequena. Se não, usa o emoji 📦
+                const tagImagem = p.imagem ? `<img src="${p.imagem}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` : '📦';
+                
                 lista.innerHTML += `
-                    <div class="prod-item">
-                        <img src="${imgUrl}" class="prod-img">
-                        <div class="prod-details">
-                            <div class="prod-nome">${p.nome}</div>
-                            <div class="prod-preco">R$ ${p.preco.toFixed(2)}</div>
-                        </div>
-                    </div>`;
+                    <tr>
+                        <td>${tagImagem}</td>
+                        <td style="font-weight: bold;">${p.nome}</td>
+                        <td class="price">R$ ${p.preco.toFixed(2)}</td>
+                        <td class="qty">${p.quantidade} un</td>
+                        <td><button class="btn-editar" onclick="editarProduto(${p.id}, '${p.nome}', ${p.preco}, ${p.quantidade})">Editar</button></td>
+                    </tr>
+                `;
             });
         }
 
-        async function salvarProduto() {
-            const nome = document.getElementById('prod-nome').value;
-            const preco = document.getElementById('prod-preco').value;
-            const campoImg = document.getElementById('prod-imagem');
+        // 🔥 O NOVO EVENTO DE ENVIO TOTALMENTE CORRIGIDO:
+        document.getElementById('formProduto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Captura o formulário e gera o FormData automaticamente usando os atributos 'name'
+            const form = e.target;
+            const formData = new FormData(form);
 
-            if(!nome || !preco) return alert("Preencha os campos obrigatórios!");
-
-            const formData = new FormData();
-            formData.append('nome', nome);
-            formData.append('preco', preco);
-            if(campoImg.files.length > 0) {
-                formData.append('imagem', campoImg.files[0]);
+            try {
+                const res = await fetch('/api/produtos/cadastrar', {
+                    method: 'POST',
+                    // CRÍTICO: Sem headers de Content-Type aqui! O FormData se vira sozinho.
+                    body: formData
+                });
+                
+                const r = await res.json();
+                alert(r.mensagem);
+                
+                if (r.sucesso) {
+                    form.reset();
+                    carregarProdutos();
+                }
+            } catch (erro) {
+                console.error("Erro na requisição:", erro);
+                alert("Erro ao tentar conectar com o servidor.");
             }
+        });
 
-            const resposta = await fetch('/api/produtos', {
-                method: 'POST',
-                body: formData
+        function filtrarProdutos() {
+            const busca = document.getElementById('busca').value.toLowerCase();
+            const linhas = document.querySelectorAll('#tabelaProdutos tr');
+            linhas.forEach(linha => {
+                const nome = linha.cells[1].textContent.toLowerCase();
+                linha.style.display = nome.includes(busca) ? '' : 'none';
             });
+        }
 
-            if(resposta.ok) {
-                alert("Produto salvo!");
-                document.getElementById('prod-nome').value = '';
-                document.getElementById('prod-preco').value = '';
-                campoImg.value = '';
-                listarProdutos();
+        async function editarProduto(id, nomeAntigo, precoAntigo, qtdAntiga) {
+            const novoNome = prompt("Novo nome:", nomeAntigo);
+            const novoPreco = prompt("Novo preço (R$):", precoAntigo);
+            const novaQtd = prompt("Nova quantidade em estoque:", qtdAntiga);
+            if(novoNome && novoPreco && novaQtd) {
+                const res = await fetch(`/api/produtos/editar/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome: novoNome, preco: parseFloat(novoPreco), quantidade: parseInt(novaQtd) })
+                });
+                const r = await res.json();
+                alert(r.mensagem);
+                carregarProdutos();
             }
         }
 
-        listarProdutos();
+        carregarProdutos();
     </script>
 </body>
 </html>

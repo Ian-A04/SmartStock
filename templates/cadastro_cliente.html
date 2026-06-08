@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartStoque Mobile - Clientes</title>
+    <style>
+        body { background-color: #0d0d0d; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #16161a; border-bottom: 1px solid #222; }
+        .navbar .logo { font-weight: bold; font-size: 16px; color: #ff3b30; }
+        .navbar .menu { display: flex; gap: 20px; }
+        .navbar .menu a { color: #8e8e93; text-decoration: none; font-size: 14px; }
+        .navbar .menu a:hover, .navbar .menu a.active { color: #ffffff; font-weight: bold; }
+        .container { max-width: 500px; margin: 60px auto; padding: 30px; background: #16161a; border-radius: 8px; border: 1px solid #222; }
+        h3 { margin-top: 0; font-size: 20px; font-weight: 600; margin-bottom: 25px; }
+        .input-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .input-box label { font-size: 12px; color: #8e8e93; }
+        .input-box input { background: #24242b; border: 1px solid #3a3a44; border-radius: 6px; padding: 12px; color: #fff; font-size: 14px; outline: none; }
+        .input-box input:focus { border-color: #007aff; }
+        .btn-salvar { width: 100%; background: #007aff; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        .btn-salvar:hover { background: #0062cc; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="logo">📌 SmartStoque Mobile</div>
+        <div class="menu">
+            <a href="/vendas">Caixa Operacional</a>
+            <a href="/produtos">Produtos</a>
+            <a href="/clientes" class="active">Cadastrar Clientes</a>
+            <a href="/" style="color: #ff453a;">Sair</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3>Cadastrar Novo Cliente</h3>
+        <form id="formCliente">
+            <div class="input-box">
+                <label>Nome do Cliente</label>
+                <input type="text" id="nomeCliente" placeholder="Ex: João Silva" required>
+            </div>
+            
+            <div class="input-box">
+                <label>Contato / Telefone</label>
+                <input type="text" id="contatoCliente" placeholder="Ex: (11) 99999-9999">
+            </div>
+            
+            <button type="submit" class="btn-salvar">Salvar Cliente</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('formCliente').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nome = document.getElementById('nomeCliente').value;
+            const contato = document.getElementById('contatoCliente').value;
+            
+            const res = await fetch('/api/clientes/cadastrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome: nome, contato: contato })
+            });
+            
+            const r = await res.json();
+            alert(r.mensagem);
+            
+            if(r.sucesso) {
+                document.getElementById('formCliente').reset();
+            }
+        });
+    </script>
+</body>
+</html>

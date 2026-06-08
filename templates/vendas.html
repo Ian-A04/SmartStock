@@ -1,41 +1,87 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartStoque - Caixa</title>
+    <title>SmartStoque Mobile - Caixa</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #f8f9fa; padding-bottom: 30px; }
-        .navbar { background: #1a1a1a; padding: 15px; display: flex; justify-content: space-around; }
-        .navbar a { color: #aaa; text-decoration: none; font-weight: 600; font-size: 14px; }
-        .navbar a.active { color: white; border-bottom: 2px solid #007bff; padding-bottom: 4px; }
-        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 15px; }
-        h2 { font-size: 20px; font-weight: 700; }
-        .form-group { position: relative; width: 100%; }
-        label { font-size: 11px; color: #666; position: absolute; top: -8px; left: 10px; background: #fff; padding: 0 4px; font-weight: 600; }
-        select, input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; outline: none; }
-        .row { display: flex; gap: 10px; align-items: center; }
+        /* Estilos globais e Paleta Dark Premium */
+        body { background-color: #0d0d0d; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; padding-bottom: 40px; }
+        
+        /* Barra de Navegação Padronizada */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #16161a; border-bottom: 1px solid #222; }
+        .navbar .logo { font-weight: bold; font-size: 16px; color: #ff3b30; display: flex; align-items: center; gap: 5px; }
+        .navbar .menu { display: flex; gap: 20px; }
+        .navbar .menu a { color: #8e8e93; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .navbar .menu a:hover, .navbar .menu a.active { color: #ffffff; font-weight: bold; }
+        .navbar .menu a.sair { color: #ff453a; }
+        
+        /* Container Centralizado */
+        .container { max-width: 600px; margin: 40px auto; padding: 25px; background: #16161a; border-radius: 8px; border: 1px solid #222; display: flex; flex-direction: column; gap: 20px; }
+        h2 { font-size: 20px; font-weight: 600; margin: 0 0 10px 0; }
+        
+        /* Formulários e Inputs Modernos */
+        .form-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .form-group label { font-size: 12px; color: #8e8e93; font-weight: 500; }
+        select, input { background: #24242b; border: 1px solid #3a3a44; border-radius: 6px; padding: 12px; color: #fff; font-size: 14px; outline: none; width: 100%; transition: border-color 0.2s; }
+        select:focus, input:focus { border-color: #007aff; }
+        
+        /* Alinhamento de Linhas */
+        .row { display: flex; gap: 15px; align-items: flex-end; }
         .flex-grow { flex-grow: 1; }
-        .w-70 { width: 70px; }
-        .w-100 { width: 100px; }
-        .discount-text { font-size: 12px; color: #888; font-weight: 500; }
-        .btn-add { background: none; border: none; color: #007bff; font-size: 36px; cursor: pointer; line-height: 1; }
-        .carrinho-list { min-height: 120px; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; }
-        .item-nome { font-weight: 600; font-size: 14px; }
-        .item-sub { font-size: 12px; color: #666; }
-        .item-total { font-weight: 700; color: #111; }
-        .btn-confirm { background-color: #28a745; color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .w-70 { width: 90px; }
+        .w-100 { width: 130px; }
+        
+        /* Textos de Auxílio */
+        .discount-text { font-size: 13px; color: #8e8e93; font-weight: 500; padding-bottom: 12px; }
+        
+        /* Botão de Adicionar Circular Clássico */
+        .btn-add { background: #24242b; border: 1px solid #3a3a44; color: #007aff; font-size: 24px; cursor: pointer; border-radius: 6px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: background 0.2s; }
+        .btn-add:hover { background: #3a3a44; }
+        
+        /* Lista de Itens do Carrinho */
+        .carrinho-list { min-height: 80px; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; }
+        .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #1c1c21; border: 1px solid #222; border-radius: 6px; }
+        .item-nome { font-weight: bold; font-size: 14px; color: #ffffff; }
+        .item-sub { font-size: 12px; color: #8e8e93; margin-top: 3px; }
+        .item-total { font-weight: 600; color: #34c759; font-size: 14px; }
+        
+        /* Botão Confirmar Venda Grande */
+        .btn-confirm { background-color: #34c759; color: white; border: none; width: 100%; padding: 14px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        .btn-confirm:hover { background-color: #28a745; }
+        
+        /* Customização do Scrollbar do Carrinho */
+        .carrinho-list::-webkit-scrollbar { width: 6px; }
+        .carrinho-list::-webkit-scrollbar-thumb { background: #3a3a44; border-radius: 3px; }
+
+        /* Input para edição de preço dentro do carrinho */
+        .input-preco-carrinho {
+            background: #24242b;
+            border: 1px solid #3a3a44;
+            color: #fff;
+            border-radius: 4px;
+            padding: 4px 6px;
+            width: 65px;
+            font-size: 12px;
+            text-align: right;
+            transition: border-color 0.2s;
+        }
+        .input-preco-carrinho:focus {
+            border-color: #34c759;
+            outline: none;
+        }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <a href="/vendas" class="active">🛒 Caixa</a>
-        <a href="/produtos">📦 Produtos</a>
-        <a href="/usuarios">👤 Usuários</a>
-        <a href="/" onclick="localStorage.clear()">❌ Sair</a>
+        <div class="logo">📌 SmartStoque Mobile</div>
+        <div class="menu">
+            <a href="/vendas" class="active">Caixa Operacional</a>
+            <a href="/produtos">Produtos</a>
+            <a href="/clientes">Cadastrar Clientes</a>
+            <a href="/" class="sair" onclick="localStorage.clear()">Sair</a>
+        </div>
     </div>
 
     <div class="container">
@@ -51,25 +97,27 @@
         <div class="row">
             <div class="form-group flex-grow">
                 <label>Escolher Produto</label>
-                <select id="dropdown-produto"></select>
+                <select id="dropdown-produto" onchange="atualizarLabelDesconto()">
+                    <option value="">Selecione um produto...</option>
+                </select>
             </div>
             <div class="form-group w-70">
                 <label>Qtd</label>
-                <input type="number" id="txt-quantidade" value="1" min="1">
+                <input type="number" id="txt-quantidade" value="1" min="1" oninput="atualizarLabelDesconto()">
             </div>
         </div>
 
         <div class="row">
             <div class="form-group w-100">
-                <label>Desc. (R$)</label>
-                <input type="number" id="txt-desconto" value="0.00" step="0.01">
+                <label>Desc. no Item (R$)</label>
+                <input type="number" id="txt-desconto" value="0.00" step="0.01" min="0" oninput="atualizarLabelDesconto()">
             </div>
             <div class="discount-text flex-grow" id="lbl-porcentagem">% Desconto: 0%</div>
             <button class="btn-add" id="btn-adicionar">+</button>
         </div>
 
-        <hr style="border:0; border-top: 1px solid #eee;">
-        <div style="font-size: 13px; font-weight: bold; color: #666;">Produtos no Carrinho:</div>
+        <hr style="border: 0; border-top: 1px solid #222; margin: 10px 0;">
+        <div style="font-size: 13px; font-weight: 600; color: #8e8e93;">Produtos no Carrinho:</div>
 
         <div class="carrinho-list" id="lista-carrinho"></div>
 
@@ -81,72 +129,170 @@
     <script>
         let carrinho = [];
 
+        // Inicializa buscando dados das APIs do seu backend
         async function inicializar() {
-            // Busca Clientes
-            const resClientes = await fetch('/api/clientes');
-            const clientes = await resClientes.json();
-            const comboCli = document.getElementById('dropdown-cliente');
-            clientes.forEach(c => comboCli.innerHTML += `<option value="${c.id}">👤 ${c.nome}</option>`);
+            try {
+                // Busca Clientes cadastrados no banco
+                const resClientes = await fetch('/api/clientes');
+                const clientes = await resClientes.json();
+                const comboCli = document.getElementById('dropdown-cliente');
+                clientes.forEach(c => {
+                    comboCli.innerHTML += `<option value="${c.id}">👤 ${c.nome}</option>`;
+                });
 
-            // Busca Produtos
-            const resProdutos = await fetch('/api/produtos');
-            const produtos = await resProdutos.json();
-            const comboProd = document.getElementById('dropdown-produto');
-            comboProd.innerHTML = '<option value="">Selecione um produto...</option>';
-            produtos.forEach(p => comboProd.innerHTML += `<option value="${p.id}" data-preco="${p.preco}">${p.nome} (R$ ${p.preco.toFixed(2)})</option>`);
+                // Busca Produtos cadastrados no banco
+                const resProdutos = await fetch('/api/produtos');
+                const produtos = await resProdutos.json();
+                const comboProd = document.getElementById('dropdown-produto');
+                produtos.forEach(p => {
+                    comboProd.innerHTML += `<option value="${p.id}" data-preco="${p.preco}">${p.nome} (R$ ${p.preco.toFixed(2)})</option>`;
+                });
+            } catch (error) {
+                console.error("Erro ao carregar dados iniciais:", error);
+            }
         }
 
-        // Lógica de cálculo de desconto e adição do carrinho do JS anterior integrada aqui...
+        // Calcula a porcentagem de desconto dinamicamente na tela com base no item selecionado
+        function atualizarLabelDesconto() {
+            const comboProd = document.getElementById('dropdown-produto');
+            const opcao = comboProd.options[comboProd.selectedIndex];
+            const lblPorcentagem = document.getElementById('lbl-porcentagem');
+            
+            if (!opcao || !opcao.value) {
+                lblPorcentagem.innerText = "% Desconto: 0%";
+                return;
+            }
+
+            const precoBase = parseFloat(opcao.getAttribute('data-preco'));
+            const qtd = parseInt(document.getElementById('txt-quantidade').value) || 1;
+            const desc = parseFloat(document.getElementById('txt-desconto').value) || 0;
+            
+            const subtotalItem = precoBase * qtd;
+            
+            if (subtotalItem > 0) {
+                const pct = (desc / subtotalItem) * 100;
+                lblPorcentagem.innerText = `% Desconto: ${Math.min(pct, 100).toFixed(0)}%`;
+            } else {
+                lblPorcentagem.innerText = "% Desconto: 0%";
+            }
+        }
+
+        // Adiciona o item ao carrinho aplicando o desconto individualmente nele
         document.getElementById('btn-adicionar').addEventListener('click', () => {
             const comboProd = document.getElementById('dropdown-produto');
             const opcao = comboProd.options[comboProd.selectedIndex];
-            if (!opcao.value) return;
+            if (!opcao.value) return alert("Selecione um produto primeiro!");
 
             const id = opcao.value;
             const nome = opcao.text.split(' (')[0];
             const precoBase = parseFloat(opcao.getAttribute('data-preco'));
             const qtd = parseInt(document.getElementById('txt-quantidade').value) || 1;
-            const desc = parseFloat(document.getElementById('txt-desconto').value) || 0;
+            const descTotalItem = parseFloat(document.getElementById('txt-desconto').value) || 0;
 
-            const precoFinal = ((precoBase * qtd) - desc) / qtd;
+            // Calcula o valor total do item menos o desconto dele, e divide pela quantidade
+            const valorComDesconto = (precoBase * qtd) - descTotalItem;
+            const precoFinalPorUnidade = valorComDesconto / qtd;
 
-            carrinho.push({ id, nome, quantidade: qtd, preco: precoFinal > 0 ? precoFinal : 0, descontoAplicado: desc });
+            // Garante que o preço unitário final não seja negativo
+            const precoDefinitivo = precoFinalPorUnidade > 0 ? precoFinalPorUnidade : 0;
+
+            carrinho.push({ 
+                id: id, 
+                nome: nome, 
+                quantidade: qtd, 
+                preco: precoDefinitivo, 
+                descontoAplicado: descTotalItem 
+            });
+
+            // Limpa os campos de quantidade e desconto para o próximo produto
+            document.getElementById('txt-quantidade').value = "1";
+            document.getElementById('txt-desconto').value = "0.00";
+            comboProd.selectedIndex = 0;
+            atualizarLabelDesconto();
+            
             atualizarUI();
         });
 
+        // Atualiza a listagem do carrinho e recalcula o valor da venda
         function atualizarUI() {
             const lista = document.getElementById('lista-carrinho');
             lista.innerHTML = '';
-            let total = 0;
-            carrinho.forEach(item => {
-                total += item.preco * item.quantidade;
+            let totalVenda = 0;
+
+            // Adicionamos o 'index' aqui para saber qual produto estamos editando
+            carrinho.forEach((item, index) => {
+                const subtotalItem = item.preco * item.quantidade;
+                totalVenda += subtotalItem;
+                
                 lista.innerHTML += `
                     <div class="carrinho-item">
                         <div>
                             <div class="item-nome">${item.nome}</div>
-                            <div class="item-sub">${item.quantidade}x — R$ ${item.preco.toFixed(2)}</div>
+                            <div class="item-sub" style="display: flex; align-items: center; gap: 5px; margin-top: 5px;">
+                                ${item.quantidade}x — R$ 
+                                <input type="number" step="0.01" value="${item.preco.toFixed(2)}" 
+                                    class="input-preco-carrinho"
+                                    onchange="atualizarPrecoNoCarrinho(${index}, this.value)">
+                                un
+                            </div>
                         </div>
-                        <div class="item-total">R$ ${(item.preco * item.quantidade).toFixed(2)}</div>
+                        <div class="item-total">R$ ${subtotalItem.toFixed(2)}</div>
                     </div>`;
             });
-            document.getElementById('btn-fechar-venda').innerText = `Confirmar Venda (R$ ${total.toFixed(2)})`;
+
+            document.getElementById('btn-fechar-venda').innerText = `Confirmar Venda (R$ ${totalVenda.toFixed(2)})`;
         }
 
+        // Função nova: Disparada sempre que o usuário altera o preço direto no carrinho
+        function atualizarPrecoNoCarrinho(index, novoPreco) {
+            let precoAjustado = parseFloat(novoPreco);
+            if (isNaN(precoAjustado) || precoAjustado < 0) precoAjustado = 0; // Evita preços negativos ou vazios
+            
+            carrinho[index].preco = precoAjustado;
+            atualizarUI(); // Redesenha o carrinho com o novo total
+        }
+
+        // Finaliza a venda enviando os dados consolidados para o backend
         async function finalizarVenda() {
-            if(carrinho.length === 0) return alert("Carrinho Vazio");
-            const cliente_id = document.getElementById('dropdown-cliente').value;
+            if (carrinho.length === 0) return alert("Carrinho Vazio!");
+            const comboCliente = document.getElementById('dropdown-cliente');
+            const cliente_id = comboCliente.value;
 
-            const resposta = await fetch('/api/vendas/confirmar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cliente_id: cliente_id ? parseInt(cliente_id) : null, carrinho })
-            });
+            try {
+                const resposta = await fetch('/api/vendas/confirmar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        cliente_id: cliente_id ? parseInt(cliente_id) : null, 
+                        carrinho: carrinho 
+                    })
+                });
 
-            const res = await resposta.json();
-            alert(res.mensagem);
-            if(res.sucesso) { carrinho = []; atualizarUI(); }
+                const res = await resposta.json();
+                
+                if (res.sucesso) { 
+                    // POP-UP DO DANFE
+                    const querDanfe = confirm(res.mensagem + "\n\nDeseja gerar a Nota (DANFE) em PDF agora?");
+                    
+                    if (querDanfe && res.venda_id) {
+                        // Abre o PDF em uma nova aba para não fechar o sistema de caixa
+                        window.open(`/api/notas/download/${res.venda_id}`, '_blank');
+                    }
+                    
+                    // Limpa tudo para o próximo cliente
+                    carrinho = []; 
+                    comboCliente.selectedIndex = 0;
+                    atualizarUI(); 
+                } else {
+                    alert("Erro: " + res.mensagem);
+                }
+            } catch (erro) {
+                console.error("Erro na requisição:", erro);
+                alert("Erro ao conectar com o servidor.");
+            }
         }
 
+        // Roda a carga inicial ao abrir a página
         inicializar();
     </script>
 </body>
