@@ -66,20 +66,37 @@
             text-align: right;
             transition: border-color 0.2s;
         }
-        .input-preco-carrinho:focus {
-            border-color: #34c759;
-            outline: none;
+        .input-preco-carrinho:focus {border-color: #34c759; outline: none;}
+
+        /* Botão de remover item do carrinho */
+        .btn-remover-item {
+        background: #dc3545; /* Vermelho padrão de exclusão */
+        color: white;
+        border: none;
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-left: 15px; /* Dá um espacinho entre o preço e o botão */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
         }
+
+    .btn-remover-item:hover {background: #c82333;}
+
     </style>
 </head>
 <body>
-
     <div class="navbar">
-        <div class="logo">📌 SmartStoque Mobile</div>
+        <div class="logo">📌 SmartStoque</div>
         <div class="menu">
-            <a href="/vendas" class="active">Caixa Operacional</a>
-            <a href="/produtos">Produtos</a>
-            <a href="/clientes">Cadastrar Clientes</a>
+            <a href="/caixa" title="Caixa Operacional">🛒</a>
+            <a href="/produtos" title="Produtos">📦</a>
+            <a href="/clientes" title="Clientes">👤</a
             <a href="/" class="sair" onclick="localStorage.clear()">Sair</a>
         </div>
     </div>
@@ -189,13 +206,28 @@
             const qtd = parseInt(document.getElementById('txt-quantidade').value) || 1;
             const descTotalItem = parseFloat(document.getElementById('txt-desconto').value) || 0;
 
-            // Calcula o valor total do item menos o desconto dele, e divide pela quantidade
+        // Calcula o valor total do item menos o desconto dele, e divide pela quantidade
             const valorComDesconto = (precoBase * qtd) - descTotalItem;
             const precoFinalPorUnidade = valorComDesconto / qtd;
-
-            // Garante que o preço unitário final não seja negativo
             const precoDefinitivo = precoFinalPorUnidade > 0 ? precoFinalPorUnidade : 0;
 
+        // Verifica se o produto já existe na memória do carrinho
+            const itemExistente = carrinho.find(item => item.id === id);
+
+        if (itemExistente) {
+            // Se já existe, apenas somamos a quantidade e o desconto aos valores antigos
+            itemExistente.quantidade += qtd;
+            itemExistente.descontoAplicado += descTotalItem;
+        
+            // Recalcula o preço unitário para ficar certinho (caso o usuário tenha dado desconto extra)
+            const valorTotalBase = precoBase * itemExistente.quantidade;
+            const valorFinalTotal = valorTotalBase - itemExistente.descontoAplicado;
+            const novoPrecoUnitario = valorFinalTotal / itemExistente.quantidade;
+        
+            itemExistente.preco = novoPrecoUnitario > 0 ? novoPrecoUnitario : 0;}   
+        
+        else {
+            // Se não existe, cria a linha pela primeira vez
             carrinho.push({ 
                 id: id, 
                 nome: nome, 
@@ -203,15 +235,17 @@
                 preco: precoDefinitivo, 
                 descontoAplicado: descTotalItem 
             });
-
-            // Limpa os campos de quantidade e desconto para o próximo produto
-            document.getElementById('txt-quantidade').value = "1";
-            document.getElementById('txt-desconto').value = "0.00";
-            comboProd.selectedIndex = 0;
-            atualizarLabelDesconto();
-            
-            atualizarUI();
+        }
+    
+        // Limpa os campos de quantidade e desconto para o próximo produto
+        document.getElementById('txt-quantidade').value = "1";
+        document.getElementById('txt-desconto').value = "0.00";
+        comboProd.selectedIndex = 0;
+        atualizarLabelDesconto();
+    
+        atualizarUI();
         });
+
 
         // Atualiza a listagem do carrinho e recalcula o valor da venda
         function atualizarUI() {
@@ -236,11 +270,21 @@
                                 un
                             </div>
                         </div>
-                        <div class="item-total">R$ ${subtotalItem.toFixed(2)}</div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="item-total">R$ ${subtotalItem.toFixed(2)}</div>
+                            <button class="btn-remover-item" title="Remover item" onclick="removerDoCarrinho(${index})">X</button>
+                        </div>
                     </div>`;
             });
 
             document.getElementById('btn-fechar-venda').innerText = `Confirmar Venda (R$ ${totalVenda.toFixed(2)})`;
+        }
+
+        // Função nova: Remove o item do carrinho e redesenha a tela
+        function removerDoCarrinho(index) {
+            carrinho.splice(index, 1); // Remove 1 item da posição clicada
+            atualizarUI(); // Atualiza a tela com o novo total
         }
 
         // Função nova: Disparada sempre que o usuário altera o preço direto no carrinho

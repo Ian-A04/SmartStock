@@ -31,16 +31,22 @@
         .qty { color: #ff9500; font-weight: 500; }
         .btn-editar { background: #24242b; color: #fff; border: 1px solid #3a3a44; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .btn-editar:hover { background: #3a3a44; }
+        /* Container que segura a imagem e o lápis juntos */
+        .img-container {position: relative; display: inline-block; width: 60px; /* Ajuste para o tamanho que você já usa na sua tabela */ height: 60px;}
+        .produto-img {width: 100%; height: 100%; border-radius: 8px; object-fit: cover; /* Faz a imagem encaixar no quadrado sem distorcer */}
+        /* O Lápis flutuante */
+        .lapis-edit {position: absolute; top: -5px; right: -5px; background: #007bff; /* Azul do seu botão */ color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: 0.2s;}
+        .lapis-edit:hover {background: #0056b3; transform: scale(1.1); /* Dá um pequeno zoom ao passar o mouse */}
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div class="logo">📌 SmartStoque Mobile</div>
+        <div class="logo">📌 SmartStoque</div>
         <div class="menu">
-            <a href="/vendas">Caixa Operacional</a>
-            <a href="/produtos" class="active">Produtos</a>
-            <a href="/clientes">Cadastrar Clientes</a>
+            <a href="/caixa" title="Caixa Operacional">🛒</a>
+            <a href="/produtos" title="Produtos">📦</a>
+            <a href="/clientes" title="Clientes">👤</a
             <a href="/" class="sair">Sair</a>
         </div>
     </div>
@@ -92,13 +98,23 @@
             const produtos = await res.json();
             const lista = document.getElementById('tabelaProdutos');
             lista.innerHTML = '';
+            
             produtos.forEach(p => {
                 // SACADA VISUAL: Se o produto tiver imagem, exibe ela pequena. Se não, usa o emoji 📦
+                // Mantive a sua lógica intacta aqui!
                 const tagImagem = p.imagem ? `<img src="${p.imagem}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` : '📦';
                 
                 lista.innerHTML += `
                     <tr>
-                        <td>${tagImagem}</td>
+                        <td class="celula-imagem">
+                            <div class="img-container">
+                                <img src="${p.imagem}" alt="Imagem" class="produto-img">
+            
+                                <div class="lapis-edit" onclick="acionarInputImagem(${p.id})">✏️</div>
+            
+                                <input type="file" id="input-img-${p.id}" style="display: none;" accept="image/*" onchange="enviarNovaImagem(${p.id})">
+                            </div>
+                        </td>
                         <td style="font-weight: bold;">${p.nome}</td>
                         <td class="price">R$ ${p.preco.toFixed(2)}</td>
                         <td class="qty">${p.quantidade} un</td>
@@ -108,7 +124,7 @@
             });
         }
 
-        // 🔥 O NOVO EVENTO DE ENVIO TOTALMENTE CORRIGIDO:
+        // EVENTO DE ENVIO TOTALMENTE CORRIGIDO:
         document.getElementById('formProduto').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -162,6 +178,41 @@
         }
 
         carregarProdutos();
+
+        // 1. O clique no lápis aciona o clique no input invisível
+function acionarInputImagem(idProduto) {
+    document.getElementById(`input-img-${idProduto}`).click();
+}
+
+// 2. Quando o usuário escolhe a foto, essa função envia para o Python
+async function enviarNovaImagem(idProduto) {
+    const inputForm = document.getElementById(`input-img-${idProduto}`);
+    const arquivo = inputForm.files[0];
+
+    if (!arquivo) return; // Se o usuário abriu a janela e cancelou, não faz nada
+
+    const formData = new FormData();
+    formData.append('imagem', arquivo);
+
+    try {
+        // Envia a imagem para uma rota específica no Python
+        const resposta = await fetch(`/api/atualizar_foto_produto/${idProduto}`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const resultado = await resposta.json();
+
+        if (resposta.ok && resultado.sucesso) {
+            // Atualiza a página automaticamente para exibir a foto nova!
+            window.location.reload(); 
+        } else {
+            alert("Erro ao salvar imagem: " + resultado.mensagem);
+        }
+    } catch (erro) {
+        alert("Erro de conexão ao enviar a nova imagem.");
+    }
+}
     </script>
 </body>
 </html>

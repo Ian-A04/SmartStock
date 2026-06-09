@@ -112,6 +112,35 @@ def cadastrar_produto():
     except Exception as e:
         return jsonify({"sucesso": False, "mensagem": f"Erro ao cadastrar: {str(e)}"}), 500
     
+@app.route('/api/atualizar_foto_produto/<int:id_produto>', methods=['POST'])
+def atualizar_foto_produto(id_produto):
+    try:
+        # Verifica se o arquivo de imagem veio na requisição
+        if 'imagem' not in request.files:
+            return jsonify({"sucesso": False, "mensagem": "Nenhuma imagem selecionada."}), 400
+            
+        imagem = request.files['imagem']
+        
+        if imagem and imagem.filename != '':
+            # Limpa o nome do arquivo e salva na pasta do servidor
+            nome_arquivo = secure_filename(imagem.filename)
+            caminho_salvar = os.path.join('/home/kuras/meushop/SmartStoque/static/img', nome_arquivo)
+            imagem.save(caminho_salvar)
+            
+            # Atualiza apenas a coluna 'imagem' no banco de dados
+            caminho_banco = f'/static/img/{nome_arquivo}'
+            
+            with obter_conexao() as (conn, cursor):
+                cursor.execute("UPDATE produtos SET imagem = ? WHERE id = ?", (caminho_banco, id_produto))
+                conn.commit()
+                
+            return jsonify({"sucesso": True, "mensagem": "Imagem atualizada!"})
+            
+        return jsonify({"sucesso": False, "mensagem": "Arquivo de imagem inválido."}), 400
+
+    except Exception as ex:
+        return jsonify({"sucesso": False, "mensagem": str(ex)}), 500
+    
 @app.route('/api/produtos', methods=['GET'])
 def listar_produtos_api():
     try:
